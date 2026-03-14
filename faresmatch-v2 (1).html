@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FaresMatch — Find Your Fare. Match Your Journey.</title>
+<meta name="description" content="AI-powered travel itineraries, cost estimates and packing lists for modern travelers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap&font-display=swap" rel="stylesheet">
+
+<script type="speculationrules">
+{"prerender":[{"where":{"selector_matches":"[data-page]"}}]}
+</script>
+
+<style>
+@layer reset, tokens, base, layout, components, patterns, utilities, animations;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  img, picture, video { max-width: 100%; display: block; }
+  button, input, select, textarea { font: inherit; }
+  ul, ol { list-style: none; }
+  a { color: inherit; text-decoration: none; }
+  [hidden] { display: none !important; }
+}
+
+@layer tokens {
+  :root {
+    --cream: #FAF6EE;
+    --deep: #1A1208;
+    --deep2: #231609;
+    --gold: #C9952A;
+    --gold-light: #E8B84B;
+    --rust: #8B3A1C;
+    --muted: #8A7A60;
+    --sand: #F5EFE0;
+    --white: #FFFFFF;
+    --card-dark: #1E1409;
+
+    --gold-5:  color-mix(in srgb, var(--gold)  5%, transparent);
+    --gold-10: color-mix(in srgb, var(--gold) 10%, transparent);
+    --gold-20: color-mix(in srgb, var(--gold) 20%, transparent);
+    --gold-30: color-mix(in srgb, var(--gold) 30%, transparent);
+    --deep-70: color-mix(in srgb, var(--deep) 70%, transparent);
+    --deep-90: color-mix(in srgb, var(--deep) 90%, transparent);
+
+    --text-xs:   clamp(0.68rem, 1.4vw, 0.78rem);
+    --text-sm:   clamp(0.8rem,  2vw,   0.92rem);
+    --text-base: clamp(0.92rem, 2.4vw, 1rem);
+    --text-md:   clamp(1rem,    2.5vw, 1.15rem);
+    --text-lg:   clamp(1.15rem, 3vw,   1.4rem);
+    --text-xl:   clamp(1.4rem,  4vw,   1.9rem);
+    --text-2xl:  clamp(1.9rem,  5vw,   2.6rem);
+    --text-hero: clamp(2.4rem,  7vw,   5rem);
+
+    --space-xs: clamp(4px,  1vw, 8px);
+    --space-sm: clamp(8px,  2vw, 14px);
+    --space-md: clamp(14px, 3vw, 24px);
+    --space-lg: clamp(24px, 5vw, 48px);
+    --space-xl: clamp(48px, 8vw, 96px);
+
+    --radius-xs: 2px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --shadow-sm: 0 4px 16px rgba(26,18,8,.1);
+    --shadow-md: 0 8px 32px rgba(26,18,8,.14);
+    --shadow-lg: 0 16px 56px rgba(26,18,8,.2);
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+}
+
+@layer base {
+  html { scroll-behavior: smooth; color-scheme: light; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: var(--text-base);
+    color: var(--deep);
+    background: var(--cream);
+    overflow-x: hidden;
+    line-height: 1.65;
+  }
+  h1, h2, h3, h4, h5 {
+    font-family: 'Playfair Display', serif;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: var(--radius-xs);
+  }
+  ::selection { background: var(--gold-30); }
+}
+
+@layer layout {
+  .wrap  { width: min(1200px, 100% - clamp(32px, 5vw, 96px)); margin-inline: auto; }
+  .wrap--sm { width: min(780px, 100% - clamp(32px, 5vw, 96px)); margin-inline: auto; }
+
+  .page-header {
+    background: var(--deep);
+    padding-block: var(--space-lg);
+    text-align: center;
+    & h1 { font-size: var(--text-2xl); color: var(--gold-light); margin-bottom: 6px; }
+    & .crumb { font-size: var(--text-xs); color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+    & .crumb span { color: var(--gold); }
+  }
+}
+
+@layer components {
+
+  /* ── NAVBAR ── */
+  .navbar {
+    position: fixed; inset-block-start: 0; inset-inline: 0;
+    z-index: 1000;
+    height: 66px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding-inline: var(--space-lg);
+    backdrop-filter: blur(0px);
+    animation: navSolid linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0px 90px;
+  }
+  @keyframes navSolid {
+    from { background: transparent; backdrop-filter: blur(0px); }
+    to   { background: var(--deep-90); backdrop-filter: blur(12px); box-shadow: 0 2px 24px rgba(0,0,0,.3); }
+  }
+  .navbar--always { background: var(--deep) !important; animation: none !important; }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    cursor: pointer;
+    display: flex; align-items: center;
+    gap: 1px;
+    & .l-fares { font-weight: 700; color: var(--gold); }
+    & .l-dot   { color: var(--gold); margin-inline: 3px; font-size: 1.1em; }
+    & .l-match { font-family: 'DM Sans', sans-serif; font-weight: 300; color: rgba(255,255,255,.9); }
+  }
+
+  .nav-right { display: flex; align-items: center; gap: var(--space-md); }
+  .nav-links { display: flex; align-items: center; gap: var(--space-md); }
+
+  .nav-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: var(--text-sm); font-weight: 500;
+    color: rgba(255,255,255,.75);
+    padding-block-end: 2px;
+    border-block-end: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+    &:hover, &.active { color: var(--gold-light); border-block-end-color: var(--gold); }
+  }
+
+  .badge-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: 1px solid var(--gold-30);
+    color: var(--gold); padding: 5px 14px; border-radius: 100px;
+    font-size: var(--text-xs); font-weight: 500; letter-spacing: 1px;
+    cursor: pointer; transition: all .2s;
+    &:hover { background: var(--gold); color: var(--deep); }
+    & .badge-num {
+      background: var(--gold); color: var(--deep);
+      width: 17px; height: 17px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+    }
+  }
+  .badge-btn:hover .badge-num { background: var(--deep); color: var(--gold); }
+
+  /* Mobile hamburger — zero JS using <details> */
+  .hamburger-wrap { display: none; position: relative; }
+  .hamburger-wrap > summary {
+    list-style: none; cursor: pointer;
+    display: flex; flex-direction: column; gap: 5px; padding: 4px;
+    &::-webkit-details-marker { display: none; }
+    & span {
+      display: block; width: 24px; height: 2px;
+      background: var(--white); border-radius: 2px;
+      transition: all .3s;
+    }
+  }
+  .hamburger-wrap[open] > summary span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger-wrap[open] > summary span:nth-child(2) { opacity: 0; }
+  .hamburger-wrap[open] > summary span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  .mobile-menu {
+    position: fixed; inset-block-start: 66px; inset-inline: 0; inset-block-end: 0;
+    background: var(--deep); z-index: 999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: var(--space-md);
+    & .nav-btn { font-size: var(--text-lg); border: none; }
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100dvh;
+    position: relative;
+    display: flex; align-items: center;
+    overflow: hidden;
+    &::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(26,18,8,.72) 0%, rgba(26,18,8,.5) 100%);
+      z-index: 1;
+    }
+  }
+  .hero-bg {
+    position: absolute; inset: -10%;
+    background: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&auto=format&fit=crop') center/cover no-repeat;
+    animation: heroParallax linear;
+    animation-timeline: scroll(root);
+    animation-range: 0px 100dvh;
+  }
+  @keyframes heroParallax { to { transform: translateY(20%); } }
+
+  .hero-content {
+    position: relative; z-index: 2;
+    opacity: 1; transform: translateY(0);
+    transition: opacity .8s, transform .8s;
+    @starting-style { opacity: 0; transform: translateY(32px); }
+    & h1 { font-size: var(--text-hero); color: var(--white); margin-bottom: 10px; }
+    & h1 em { display: block; font-style: italic; color: var(--gold-light); }
+    & .hero-sub { font-size: var(--text-md); color: rgba(255,255,255,.68); max-width: 520px; margin-bottom: var(--space-lg); font-weight: 300; }
+  }
+  .hero-btns { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+
+  .scroll-arrow {
+    position: absolute; inset-block-end: 28px; inset-inline-start: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,.5); font-size: 1.6rem;
+    animation: bounce 2.2s infinite;
+    cursor: pointer; z-index: 2;
+    border: none; background: none;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 26px;
+    font-size: var(--text-sm); font-weight: 500;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    border-radius: var(--radius-xs);
+    border: 2px solid transparent;
+    cursor: pointer; transition: all .25s;
+    white-space: nowrap;
+  }
+  .btn-gold  { background: var(--gold); color: var(--deep); border-color: var(--gold); &:hover { background: var(--gold-light); border-color: var(--gold-light); } }
+  .btn-outline { background: transparent; color: var(--gold-light); border-color: var(--gold); &:hover { background: var(--gold); color: var(--deep); } }
+  .btn-dark { background: var(--deep); color: var(--gold-light); border-color: var(--deep); &:hover { background: var(--card-dark); } }
+  .btn-sm { padding: 9px 18px; font-size: var(--text-xs); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* ── SECTION CHROME ── */
+  .section-tag { font-size: var(--text-xs); letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .section-title { font-size: var(--text-2xl); margin-bottom: var(--space-sm); }
+  .section-sub { font-size: var(--text-md); color: var(--muted); font-weight: 300; max-width: 520px; }
+  .section-head { margin-bottom: var(--space-lg); }
+
+  /* ── HOW IT WORKS ── */
+  .how-section { background: var(--cream); padding-block: var(--space-xl); }
+  .steps-grid {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr 40px 1fr;
+    align-items: start; gap: var(--space-sm);
+    margin-block-start: var(--space-lg);
+  }
+  .step { text-align: center; padding: var(--space-md); }
+  .step-num { font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--gold); opacity: .25; line-height: 1; margin-bottom: 8px; }
+  .step-icon { font-size: 2rem; margin-bottom: 12px; }
+  .step h3 { font-size: var(--text-md); margin-bottom: 8px; }
+  .step p { font-size: var(--text-sm); color: var(--muted); }
+  .step-div { display: flex; align-items: center; justify-content: center; padding-block-start: 56px; color: var(--gold); opacity: .35; font-size: 1.4rem; }
+
+  /* ── FEATURES ── */
+  .features-section { background: var(--deep); padding-block: var(--space-xl); }
+  .features-section .section-title { color: var(--white); }
+  .features-section .section-sub { color: rgba(255,255,255,.4); }
+
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--space-md); container-type: inline-size; }
+  .feature-card {
+    background: var(--card-dark);
+    border: 1px solid var(--gold-10);
+    border-radius: var(--radius-sm);
+    padding: var(--space-lg);
+    cursor: pointer;
+    transition: transform .25s, box-shadow .25s, border-color .25s;
+    &:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--gold-30); }
+    & .fi { font-size: 2.2rem; margin-bottom: var(--space-sm); }
+    & h3 { color: var(--white); font-size: var(--text-md); margin-bottom: 8px; }
+    & p { color: rgba(255,255,255,.42); font-size: var(--text-sm); margin-bottom: var(--space-sm); }
+    & .fl { color: var(--gold); font-size: var(--text-sm); font-weight: 500; transition: color .2s; }
+    &:hover .fl { color: var(--gold-light); }
+  }
+
+  /* ── WHY ── */
+  .why-section { background: var(--sand); padding-block: var(--space-xl); }
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-md); }
+  .why-card {
+    background: var(--white); border-radius: var(--radius-sm);
+    padding: var(--space-lg); text-align: center;
+    border: 1px solid var(--gold-10); box-shadow: var(--shadow-sm);
+    & .wi { font-size: 2.5rem; margin-bottom: var(--space-sm); }
+    & h3 { font-size: var(--text-md); margin-bottom: 8px; }
+    & p { font-size: var(--text-sm); color: var(--muted); }
+  }
+
+  /* ── TESTIMONIALS ── */
+  .testi-section { background: var(--cream); padding-block: var(--space-xl); overflow: hidden; }
+  .testi-scroll {
+    display: flex; gap: var(--space-md);
+    overflow-x: auto; padding-block-end: var(--space-sm);
+    scroll-snap-type: x mandatory;
+    scrollbar-color: var(--gold-30) transparent; scrollbar-width: thin;
+  }
+  .testi-card {
+    flex: 0 0 min(360px, 85vw); scroll-snap-align: start;
+    background: var(--white); border: 1px solid var(--gold-20);
+    border-radius: var(--radius-sm); padding: var(--space-lg);
+    box-shadow: var(--shadow-md);
+    & .stars { color: var(--gold); letter-spacing: 3px; margin-bottom: var(--space-sm); }
+    & .ttext { font-size: var(--text-sm); color: var(--muted); font-style: italic; line-height: 1.75; margin-bottom: var(--space-md); }
+    & strong { display: block; font-size: var(--text-sm); }
+    & span { font-size: var(--text-xs); color: var(--muted); }
+  }
+
+  /* ── FORMS ── */
+  .form-card {
+    background: var(--white); border: 1px solid var(--gold-20);
+    border-radius: var(--radius-sm); padding: var(--space-lg); box-shadow: var(--shadow-md);
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+  .fg { display: flex; flex-direction: column; gap: 7px; }
+  .fg.full { grid-column: 1 / -1; }
+  label {
+    font-size: var(--text-xs); font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  }
+  .form-group:has(input:focus) label,
+  .fg:has(input:focus) label,
+  .fg:has(select:focus) label { color: var(--gold); }
+
+  input[type="text"], input[type="email"], input[type="tel"],
+  input[type="number"], select, textarea {
+    padding: 12px 15px;
+    font-size: var(--text-sm); color: var(--deep);
+    background: var(--cream);
+    border: 1px solid var(--gold-20); border-radius: var(--radius-xs);
+    outline: none;
+    transition: border-color .2s, background .2s;
+    appearance: none; -webkit-appearance: none;
+    &:focus { border-color: var(--gold); background: var(--white); }
+  }
+  input:user-invalid { border-color: var(--rust); }
+  input:user-valid   { border-color: color-mix(in srgb, green 60%, var(--gold)); }
+  textarea { resize: vertical; min-height: 90px; field-sizing: content; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A7A60' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 13px center;
+    padding-inline-end: 38px; cursor: pointer;
+  }
+
+  .custom-budget-wrap {
+    max-height: 0; overflow: hidden;
+    transition: max-height .4s var(--ease);
+    &.open { max-height: 70px; }
+  }
+
+  .style-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .style-tag {
+    padding: 7px 15px; border: 1px solid var(--gold-20);
+    border-radius: 100px; font-size: var(--text-xs);
+    color: var(--muted); background: var(--cream);
+    cursor: pointer; transition: all .2s;
+    &[aria-pressed="true"] { background: var(--deep); color: var(--gold-light); border-color: var(--deep); }
+    &:hover { border-color: var(--gold); }
+  }
+
+  .form-section { padding-block: var(--space-xl); background: var(--cream); }
+
+  /* ── LOADING DIALOG ── */
+  dialog.load-dlg {
+    width: min(380px, 90vw);
+    background: var(--deep); border-radius: var(--radius-md);
+    padding: var(--space-lg) var(--space-xl);
+    text-align: center;
+    border: 1px solid var(--gold-20);
+    &::backdrop { background: rgba(0,0,0,.65); backdrop-filter: blur(6px); }
+    & .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid var(--gold-20);
+      border-block-start-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto var(--space-md);
+    }
+    & .lmsg {
+      font-family: 'Playfair Display', serif; font-style: italic;
+      font-size: var(--text-md); color: var(--gold-light);
+      animation: pulse 1.8s infinite;
+    }
+    & .lsub { font-size: var(--text-xs); color: rgba(255,255,255,.35); margin-block-start: 8px; }
+  }
+
+  /* ── RESULT WRAPPER ── */
+  .result-wrap { display: none; }
+  .result-wrap.active { display: block; animation: fadeUp .5s ease; }
+
+  .result-header {
+    background: var(--deep); padding: var(--space-lg) var(--space-xl);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    position: relative; overflow: hidden;
+    &::before { content: ''; position: absolute; inset-block-start: -60px; inset-inline-end: -60px; width: 260px; height: 260px; border-radius: 50%; border: 1px solid var(--gold-10); }
+    &::after  { content: ''; position: absolute; inset-block-start: -100px; inset-inline-end: -100px; width: 420px; height: 420px; border-radius: 50%; border: 1px solid var(--gold-5); }
+  }
+  .rdest { font-family: 'Playfair Display', serif; font-size: var(--text-2xl); color: var(--gold-light); margin-bottom: 8px; }
+  .rmeta { font-size: var(--text-xs); color: rgba(255,255,255,.4); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ── TABS (zero JS via radio+:has()) ── */
+  .tab-group { background: var(--card-dark); }
+  .tab-radio { display: none; }
+  .tab-bar { display: flex; border-block-end: 1px solid var(--gold-10); }
+  .tab-lbl {
+    flex: 1; padding: 15px; text-align: center;
+    font-size: var(--text-xs); font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+    cursor: pointer; border-block-end: 2px solid transparent;
+    transition: all .2s; margin-block-end: -1px;
+  }
+  .tab-group:has(#tabA:checked) label[for="tabA"],
+  .tab-group:has(#tabB:checked) label[for="tabB"] { color: var(--gold-light); border-block-end-color: var(--gold); }
+  .tab-panel { display: none; }
+  .tab-group:has(#tabA:checked) #panelA { display: block; }
+  .tab-group:has(#tabB:checked) #panelB { display: block; }
+
+  .result-body {
+    background: var(--white);
+    border: 1px solid var(--gold-10); border-block-start: none;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  /* ── ACCORDION ITINERARY ── */
+  .day-accordion {
+    border: 1px solid var(--gold-20); border-radius: var(--radius-xs);
+    margin-bottom: 8px; overflow: hidden;
+  }
+  .day-summary {
+    display: flex; align-items: center; gap: 12px;
+    padding: 15px 20px;
+    background: var(--sand); cursor: pointer;
+    list-style: none; user-select: none;
+    transition: background .2s;
+    &::-webkit-details-marker { display: none; }
+    &:hover { background: color-mix(in srgb, var(--sand) 80%, var(--gold)); }
+  }
+  .day-accordion[open] > .day-summary { background: var(--deep); }
+  .day-number {
+    font-size: var(--text-xs); letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gold);
+    min-width: 48px; font-weight: 600;
+  }
+  .day-accordion[open] .day-number { color: var(--gold); }
+  .day-title {
+    flex: 1; font-family: 'Playfair Display', serif;
+    font-size: var(--text-md); color: var(--deep);
+  }
+  .day-accordion[open] .day-title { color: var(--gold-light); }
+  .day-arrow {
+    color: var(--gold); font-size: 1rem;
+    transition: rotate .3s var(--ease);
+  }
+  .day-accordion[open] .day-arrow { rotate: 180deg; }
+
+  .day-body {
+    padding: var(--space-md) var(--space-lg);
+    background: var(--white);
+    border-block-start: 1px solid var(--gold-10);
+    opacity: 1; transition: opacity .3s ease;
+    @starting-style { opacity: 0; }
+  }
+  .time-block {
+    padding-block: 12px;
+    border-block-end: 1px solid var(--gold-5);
+    &:last-child { border-block-end: none; }
+  }
+  .time-label {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    color: var(--rust); font-size: var(--text-sm);
+    margin-bottom: 8px; font-weight: 400;
+  }
+  .day-body p { color: var(--muted); font-size: var(--text-sm); line-height: 1.82; margin-bottom: 8px; }
+  .day-body strong { color: var(--deep); font-weight: 600; }
+  .day-body em { font-style: italic; }
+  .day-body ul { padding-inline-start: 18px; margin-bottom: 8px; }
+  .day-body li { color: var(--muted); font-size: var(--text-sm); margin-bottom: 4px; list-style: disc; }
+
+  .practical-tips {
+    margin-block-start: var(--space-md);
+    padding: var(--space-md);
+    background: var(--sand);
+    border-radius: var(--radius-xs);
+    border-inline-start: 3px solid var(--gold);
+    & .tips-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: var(--text-lg); color: var(--deep);
+      margin-bottom: var(--space-sm);
+      padding-block-end: 8px;
+      border-block-end: 1px solid var(--gold-20);
+    }
+    & p { color: var(--muted); font-size: var(--text-sm); line-height: 1.8; margin-bottom: 6px; }
+    & li { color: var(--muted); font-size: var(--text-sm); margin-bottom: 6px; list-style: decimal; margin-inline-start: 18px; }
+  }
+
+  .disclaimer {
+    margin-block-start: var(--space-md);
+    padding: 11px 15px;
+    background: color-mix(in srgb, var(--rust) 6%, transparent);
+    border-inline-start: 3px solid var(--rust);
+    border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+    font-size: var(--text-xs); color: var(--muted); font-style: italic;
+  }
+
+  .result-actions {
+    display: flex; gap: var(--space-sm); flex-wrap: wrap;
+    margin-block-start: var(--space-md);
+    padding-block-start: var(--space-md);
+    border-block-start: 1px solid var(--gold-10);
+  }
+
+  /* ── EXPLORE ── */
+  .explore-section { padding-block: var(--space-xl); background: var(--cream); }
+  .search-wrap { display: flex; gap: var(--space-sm); margin-bottom: var(--space-xl); }
+  .search-wrap input { flex: 1; font-size: var(--text-md); }
+  .explore-results { display: none; &.active { display: block; } }
+  .explore-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-md); }
+  .exp-card {
+    background: var(--white); border: 1px solid var(--gold-20);
+    border-inline-start: 4px solid var(--gold);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: var(--space-md);
+    opacity: 0; transform: translateY(18px);
+    transition: opacity .45s ease, transform .45s ease;
+    &.revealed { opacity: 1; transform: translateY(0); }
+    & .ei { font-size: 1.5rem; margin-bottom: 8px; }
+    & h3 { font-family: 'Playfair Display', serif; font-size: var(--text-md); color: var(--deep); margin-bottom: 10px; }
+    & .ec { font-size: var(--text-sm); color: var(--muted); line-height: 1.75; }
+    & .ec ul { padding-inline-start: 18px; }
+    & .ec li { list-style: disc; margin-bottom: 4px; }
+  }
+
+  /* ── COST ── */
+  .cost-section { padding-block: var(--space-xl); background: var(--cream); }
+  .cost-results { display: none; &.active { display: block; animation: fadeUp .5s ease; } }
+  .cost-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-md); }
+  .cost-card {
+    background: var(--white); border: 1px solid var(--gold-10);
+    border-radius: var(--radius-sm); padding: var(--space-md); box-shadow: var(--shadow-sm);
+    & .cci { font-size: 1.8rem; margin-bottom: 8px; }
+    & h4 { font-size: var(--text-xs); color: var(--muted); margin-bottom: 4px; font-family: 'DM Sans'; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+    & .cam { font-family: 'Playfair Display', serif; font-size: var(--text-lg); color: var(--deep); margin-bottom: 4px; }
+    & .crng { font-size: var(--text-xs); color: var(--muted); margin-bottom: 10px; }
+  }
+
+  @property --bar-w { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+  .bar-track { height: 4px; background: var(--gold-10); border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--gold); border-radius: 2px; width: var(--bar-w); transition: --bar-w 1.2s ease; }
+
+  .cost-total {
+    background: var(--gold); border-radius: var(--radius-sm);
+    padding: var(--space-lg); text-align: center; margin-bottom: var(--space-md);
+    & h3 { font-size: var(--text-xs); color: var(--deep); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; font-family: 'DM Sans'; }
+    & .ctotal { font-family: 'Playfair Display', serif; font-size: var(--text-2xl); color: var(--deep); }
+  }
+
+  /* ── PACKING ── */
+  .packing-section { padding-block: var(--space-xl); background: var(--cream); }
+  .pack-results { display: none; &.active { display: block; animation: fadeUp .5s ease; } }
+
+  @property --pack-w { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+  .prog-wrap { margin-bottom: var(--space-lg); }
+  .prog-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--text-sm); color: var(--muted); & strong { color: var(--deep); } }
+  .prog-track { height: 8px; background: var(--gold-10); border-radius: 4px; overflow: hidden; }
+  .prog-fill { height: 100%; background: linear-gradient(to right, var(--gold), var(--gold-light)); border-radius: 4px; width: var(--pack-w); transition: --pack-w .6s ease; }
+
+  .pack-cats { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-md); }
+  .pack-cat {
+    background: var(--white); border: 1px solid var(--gold-10);
+    border-radius: var(--radius-sm); padding: var(--space-md);
+  }
+  .pcat-title {
+    font-size: var(--text-sm); font-weight: 600; color: var(--deep);
+    margin-bottom: var(--space-sm); padding-block-end: 10px;
+    border-block-end: 1px solid var(--gold-10);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pack-row {
+    display: flex; align-items: center; gap: 10px;
+    padding-block: 8px; border-block-end: 1px solid rgba(0,0,0,.04);
+    cursor: pointer;
+    &:last-child { border-block-end: none; }
+    & input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--gold); cursor: pointer; flex-shrink: 0; }
+    & label { font-size: var(--text-sm); color: var(--deep); cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 400; }
+    & input:checked + label { text-decoration: line-through; color: var(--muted); }
+  }
+
+  /* ── CONTACT ── */
+  .contact-section { padding-block: var(--space-xl); background: var(--cream); }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); align-items: start; }
+  .agency-card {
+    background: var(--deep); border-radius: var(--radius-sm); padding: var(--space-lg);
+    & h3 { color: var(--gold-light); margin-bottom: var(--space-md); font-size: var(--text-lg); }
+  }
+  .arow {
+    display: flex; gap: 12px; padding-block: 11px;
+    border-block-end: 1px solid rgba(255,255,255,.07);
+    font-size: var(--text-sm); color: rgba(255,255,255,.65);
+    &:last-of-type { border-block-end: none; }
+    & .aicon { font-size: 1rem; flex-shrink: 0; margin-block-start: 2px; }
+  }
+  .maps-box {
+    margin-block-start: var(--space-md); height: 150px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.09); border-radius: var(--radius-xs);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    color: rgba(255,255,255,.28); font-size: var(--text-sm); cursor: pointer;
+    transition: background .2s;
+    &:hover { background: rgba(255,255,255,.07); }
+  }
+
+  .wa-btn {
+    position: fixed; inset-block-end: 26px; inset-inline-end: 26px; z-index: 900;
+    background: #25D366; color: var(--white);
+    width: 54px; height: 54px; border-radius: 50%; border: none;
+    font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(37,211,102,.4);
+    animation: waPulse 2.5s infinite;
+    text-decoration: none; transition: transform .2s;
+    &:hover { transform: scale(1.1); animation: none; }
+  }
+  @keyframes waPulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(37,211,102,.4); }
+    50%      { box-shadow: 0 4px 32px rgba(37,211,102,.65); }
+  }
+
+  /* ── SAVED MODAL ── */
+  dialog#savedDlg {
+    width: min(580px, 92vw); background: var(--white);
+    border-radius: var(--radius-md); padding: 0; overflow: hidden;
+    border: none; box-shadow: var(--shadow-lg);
+    &::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(5px); }
+    & .mhead { background: var(--deep); padding: var(--space-md) var(--space-lg); display: flex; align-items: center; justify-content: space-between; }
+    & .mhead h2 { color: var(--gold-light); font-size: var(--text-lg); }
+    & .mclose { background: none; border: none; color: rgba(255,255,255,.45); font-size: 1.5rem; cursor: pointer; padding: 2px 8px; line-height: 1; &:hover { color: var(--white); } }
+    & .mbody { padding: var(--space-lg); max-height: 68vh; overflow-y: auto; }
+  }
+  .saved-item {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--gold-10); border-radius: var(--radius-xs);
+    margin-bottom: var(--space-sm);
+    display: flex; justify-content: space-between; align-items: center;
+    & strong { display: block; font-size: var(--text-sm); }
+    & span { font-size: var(--text-xs); color: var(--muted); }
+  }
+  .sdel { background: none; border: none; color: var(--rust); font-size: 1.1rem; cursor: pointer; padding: 4px 8px; }
+  .empty-msg { text-align: center; color: var(--muted); padding: var(--space-lg); font-style: italic; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; inset-block-end: 90px; inset-inline-end: 26px; z-index: 9999;
+    background: var(--deep); color: var(--gold-light);
+    padding: 12px 22px; border-radius: var(--radius-xs);
+    font-size: var(--text-sm); border-inline-start: 3px solid var(--gold);
+    box-shadow: var(--shadow-lg);
+    opacity: 1; transform: translateX(0);
+    transition: opacity .3s, transform .3s;
+    pointer-events: none;
+    @starting-style { opacity: 0; transform: translateX(16px); }
+    &.terror { border-inline-start-color: var(--rust); color: #f87070; }
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--deep); padding-block: var(--space-xl) var(--space-lg);
+    border-block-start: 1px solid var(--gold);
+  }
+  .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1.2fr; gap: var(--space-lg); margin-bottom: var(--space-lg); }
+  .fbrand p { font-size: var(--text-sm); color: rgba(255,255,255,.38); margin-block-start: 8px; max-width: 240px; font-style: italic; }
+  .fcol h4 { font-size: var(--text-xs); letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: var(--space-sm); font-family: 'DM Sans'; }
+  .flinks { display: flex; flex-direction: column; gap: 8px; }
+  .flinks button { background: none; border: none; color: rgba(255,255,255,.45); font-size: var(--text-sm); text-align: start; padding: 0; cursor: pointer; transition: color .2s; &:hover { color: var(--gold-light); } }
+  .foot-bottom { padding-block-start: var(--space-md); border-block-start: 1px solid rgba(255,255,255,.06); text-align: center; font-size: var(--text-xs); color: rgba(255,255,255,.25); }
+
+  /* SKIP LINK */
+  .skip { position: absolute; inset-block-start: -40px; inset-inline-start: 0; background: var(--gold); color: var(--deep); padding: 8px 16px; z-index: 9999; font-weight: 600; transition: top .2s; &:focus { inset-block-start: 0; } }
+
+  /* Reveal helper */
+  .reveal { animation: fadeUp linear both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+}
+
+@layer animations {
+  @keyframes fadeUp { from { opacity: 0; translate: 0 28px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes spin   { to { rotate: 1turn; } }
+  @keyframes bounce { 0%,100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+  @keyframes pulse  { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .steps-grid { grid-template-columns: 1fr; & .step-div { display: none; } }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links, .nav-right .badge-btn { display: none; }
+  .hamburger-wrap { display: block; }
+  .form-grid { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .hero-btns { flex-direction: column; align-items: flex-start; }
+  .result-body { padding: var(--space-md); }
+  .result-header { padding: var(--space-md); }
+  .cost-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .cost-grid, .pack-cats { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media print {
+  nav, footer, .result-actions, .pack-actions, .wa-btn, dialog, .form-card { display: none !important; }
+  .result-body { border: none !important; padding: 0 !important; }
+  body::before { content: 'FaresMatch — faresmatch.com'; display: block; font-size: 11px; color: #666; border-bottom: 1px solid #ccc; padding-bottom: 8px; margin-bottom: 16px; }
+}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip">Skip to main content</a>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="nb" role="navigation" aria-label="main">
+  <div class="logo" onclick="showPage('home')" role="button" tabindex="0">
+    <span class="l-fares">Fares</span><span class="l-dot">•</span><span class="l-match">Match</span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="showPage('home')" data-nav="home">Home</button>
+      <button class="nav-btn" onclick="showPage('itinerary')" data-nav="itinerary">Plan Trip</button>
+      <button class="nav-btn" onclick="showPage('explore')" data-nav="explore">Explore</button>
+      <button class="nav-btn" onclick="showPage('cost')" data-nav="cost">Cost</button>
+      <button class="nav-btn" onclick="showPage('packing')" data-nav="packing">Packing</button>
+      <button class="nav-btn" onclick="showPage('contact')" data-nav="contact">Contact</button>
+    </div>
+    <button class="badge-btn" onclick="openSaved()">✦ Saved <span class="badge-num" id="bcount">0</span></button>
+  </div>
+  <!-- Mobile hamburger using details/summary — zero JS -->
+  <details class="hamburger-wrap" id="hburger">
+    <summary aria-label="Toggle menu"><span></span><span></span><span></span></summary>
+    <div class="mobile-menu">
+      <button class="nav-btn" onclick="showPage('home');closeMenu()">Home</button>
+      <button class="nav-btn" onclick="showPage('itinerary');closeMenu()">Plan Trip</button>
+      <button class="nav-btn" onclick="showPage('explore');closeMenu()">Explore</button>
+      <button class="nav-btn" onclick="showPage('cost');closeMenu()">Cost</button>
+      <button class="nav-btn" onclick="showPage('packing');closeMenu()">Packing</button>
+      <button class="nav-btn" onclick="showPage('contact');closeMenu()">Contact</button>
+      <button class="badge-btn" onclick="openSaved();closeMenu()">✦ Saved Trips</button>
+    </div>
+  </details>
+</nav>
+
+<main id="main">
+
+<!-- ════════════ HOME ════════════ -->
+<section data-page="home">
+
+  <div class="hero">
+    <div class="hero-bg" role="img" aria-label="Beautiful travel destination"></div>
+    <div class="wrap">
+      <div class="hero-content">
+        <h1>Find Your Fare.<em>Match Your Perfect Journey.</em></h1>
+        <p class="hero-sub">AI-powered itineraries, cost estimates and packing lists — crafted for modern travelers.</p>
+        <div class="hero-btns">
+          <button class="btn btn-gold" onclick="showPage('itinerary')">Plan My Trip →</button>
+          <button class="btn btn-outline" onclick="showPage('explore')">Explore Destinations</button>
+        </div>
+      </div>
+    </div>
+    <button class="scroll-arrow" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})" aria-label="Scroll down">↓</button>
+  </div>
+
+  <section class="how-section" id="how">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="section-tag">Simple Process</div>
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-sub">From dream to departure in three steps, powered by Claude AI.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step reveal">
+          <div class="step-num">01</div>
+          <div class="step-icon">✏️</div>
+          <h3>Tell Us Your Dream Trip</h3>
+          <p>Share your destination, travel style, budget and any special preferences.</p>
+        </div>
+        <div class="step-div">→</div>
+        <div class="step reveal">
+          <div class="step-num">02</div>
+          <div class="step-icon">🤖</div>
+          <h3>FaresMatch AI Builds Your Plan</h3>
+          <p>Our AI crafts two personalised itinerary options — classic and off-beat.</p>
+        </div>
+        <div class="step-div">→</div>
+        <div class="step reveal">
+          <div class="step-num">03</div>
+          <div class="step-icon">✈️</div>
+          <h3>Travel With Total Confidence</h3>
+          <p>Download your itinerary, pack smart and head out knowing every detail is covered.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="section-tag">What We Offer</div>
+        <h2 class="section-title">Everything You Need</h2>
+        <p class="section-sub">Four powerful AI tools for every stage of your journey.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal" onclick="showPage('itinerary')"><div class="fi">🗺️</div><h3>AI Itinerary Generator</h3><p>Day-by-day plans with two unique options.</p><div class="fl">Try it →</div></div>
+        <div class="feature-card reveal" onclick="showPage('explore')"><div class="fi">🔭</div><h3>Destination Explorer</h3><p>Deep guides on any destination worldwide.</p><div class="fl">Try it →</div></div>
+        <div class="feature-card reveal" onclick="showPage('cost')"><div class="fi">💰</div><h3>Trip Cost Estimator</h3><p>Budget breakdowns for flights, hotels and activities.</p><div class="fl">Try it →</div></div>
+        <div class="feature-card reveal" onclick="showPage('packing')"><div class="fi">🎒</div><h3>Smart Packing List</h3><p>AI-generated checklists tailored to your trip.</p><div class="fl">Try it →</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="why-section">
+    <div class="wrap">
+      <div class="section-head reveal" style="text-align:center">
+        <div class="section-tag">Why Choose Us</div>
+        <h2 class="section-title">Why FaresMatch</h2>
+      </div>
+      <div class="why-grid">
+        <div class="why-card reveal"><div class="wi">⚡</div><h3>Powered by Claude AI</h3><p>Built on Anthropic's Claude — one of the world's most capable AI models for nuanced travel planning.</p></div>
+        <div class="why-card reveal"><div class="wi">🎯</div><h3>100% Personalised</h3><p>Every itinerary unique to your budget, style and preferences — never a generic template.</p></div>
+        <div class="why-card reveal"><div class="wi">🆓</div><h3>Free to Use</h3><p>All features completely free. No sign-ups, no subscriptions, no hidden charges.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="testi-section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="section-tag">Reviews</div>
+        <h2 class="section-title">What Travelers Say</h2>
+      </div>
+      <div class="testi-scroll">
+        <div class="testi-card"><div class="stars">★★★★★</div><p class="ttext">"FaresMatch planned our entire Bali honeymoon in under a minute. The off-beat Option B had recommendations we'd never have found ourselves — absolute magic."</p><strong>Priya & Rohit Sharma</strong><span>Mumbai, India</span></div>
+        <div class="testi-card"><div class="stars">★★★★★</div><p class="ttext">"The packing list was spot-on for our Ladakh adventure trek. Even reminded me about altitude sickness medication. Saved us so much hassle."</p><strong>Arjun Mehta</strong><span>Delhi, India</span></div>
+        <div class="testi-card"><div class="stars">★★★★★</div><p class="ttext">"As a travel agent, I use FaresMatch to give clients instant itinerary drafts. It impresses them every time and saves me hours of research."</p><strong>Sunita Kapoor</strong><span>Travel Agent, Pune</span></div>
+        <div class="testi-card"><div class="stars">★★★★☆</div><p class="ttext">"The cost estimator gave me a realistic budget for Tokyo before I even started booking. Super helpful for planning how much to save."</p><strong>Kavya Nair</strong><span>Bengaluru, India</span></div>
+      </div>
+    </div>
+  </section>
+
+</section>
+
+
+<!-- ════════════ ITINERARY ════════════ -->
+<section data-page="itinerary" hidden>
+  <div class="page-header navbar--always"><h1>AI Itinerary Generator</h1><div class="crumb">Home › <span>Plan My Trip</span></div></div>
+  <div class="form-section">
+    <div class="wrap--sm">
+
+      <div id="itinForm">
+        <div class="form-card">
+          <div class="form-grid">
+            <div class="fg full"><label for="id">Destination *</label><input type="text" id="id" placeholder="e.g. Bali, Paris, Tokyo..." required minlength="2" autocomplete="off"></div>
+            <div class="fg"><label for="idur">Duration</label>
+              <select id="idur">
+                <option value="1 day">1 Day</option><option value="2 days">2 Days</option><option value="3 days">3 Days</option><option value="4 days">4 Days</option><option value="5 days" selected>5 Days</option><option value="6 days">6 Days</option><option value="7 days">7 Days</option><option value="8 days">8 Days</option><option value="9 days">9 Days</option><option value="10 days">10 Days</option><option value="11 days">11 Days</option><option value="12 days">12 Days</option><option value="13 days">13 Days</option><option value="14 days">14 Days</option><option value="3 weeks">3 Weeks</option><option value="1 month">1 Month</option>
+              </select>
+            </div>
+            <div class="fg"><label for="itrav">Travelers</label>
+              <select id="itrav">
+                <option value="a solo traveler">Solo Traveler</option><option value="a couple">Couple</option><option value="a family with kids">Family with Kids</option><option value="a group of friends">Group of Friends</option>
+              </select>
+            </div>
+            <div class="fg full"><label for="ibudget">Budget</label>
+              <select id="ibudget" onchange="toggleCB(this.value)">
+                <option value="budget-friendly (under $100/day)">Budget — Under $100/day</option>
+                <option value="mid-range ($100–$300/day)" selected>Mid-Range — $100–$300/day</option>
+                <option value="luxury ($300–$700/day)">Luxury — $300–$700/day</option>
+                <option value="ultra-luxury (no limit)">Ultra Luxury</option>
+                <option value="custom">✏️ Enter Custom Budget</option>
+              </select>
+              <div class="custom-budget-wrap" id="cbwrap"><input type="text" id="icb" placeholder="e.g. $150/day, ₹50000 total..." style="margin-block-start:10px"></div>
+            </div>
+            <div class="fg full"><label>Travel Style</label>
+              <div class="style-tags" id="stags">
+                <button class="style-tag" aria-pressed="false" onclick="toggleTag(this)">🏛️ Culture & History</button>
+                <button class="style-tag" aria-pressed="true"  onclick="toggleTag(this)">🌿 Nature & Adventure</button>
+                <button class="style-tag" aria-pressed="false" onclick="toggleTag(this)">🍽️ Food & Cuisine</button>
+                <button class="style-tag" aria-pressed="false" onclick="toggleTag(this)">🛍️ Shopping</button>
+                <button class="style-tag" aria-pressed="false" onclick="toggleTag(this)">🧘 Wellness & Relaxation</button>
+                <button class="style-tag" aria-pressed="false" onclick="toggleTag(this)">📸 Photography</button>
+                <button class="style-tag" aria-pressed="false" onclick="toggleTag(this)">🎉 Nightlife</button>
+                <button class="style-tag" aria-pressed="false" onclick="toggleTag(this)">🏖️ Beach & Sun</button>
+              </div>
+            </div>
+            <div class="fg full"><label for="ispecial">Special Requests (optional)</label><textarea id="ispecial" placeholder="e.g. vegetarian meals, wheelchair accessible, honeymoon..."></textarea></div>
+          </div>
+          <div style="margin-block-start:var(--space-md)">
+            <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="genItinerary()">Generate My Itinerary ✈️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="result-wrap" id="itinResult">
+        <div class="result-header">
+          <div class="rdest" id="rdest">Destination</div>
+          <div class="rmeta" id="rmeta">Details</div>
+        </div>
+        <div class="tab-group">
+          <input type="radio" name="itab" id="tabA" class="tab-radio" checked>
+          <input type="radio" name="itab" id="tabB" class="tab-radio">
+          <div class="tab-bar">
+            <label for="tabA" class="tab-lbl">✦ Option A — Classic</label>
+            <label for="tabB" class="tab-lbl">✦ Option B — Alternative</label>
+          </div>
+          <div class="tab-panels">
+            <div class="tab-panel" id="panelA" aria-live="polite"></div>
+            <div class="tab-panel" id="panelB" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="result-body">
+          <div class="disclaimer">⚠️ Prices and specific details are estimates based on AI training data. Always verify with live booking platforms before purchasing.</div>
+          <div class="result-actions">
+            <button class="btn btn-dark btn-sm" onclick="window.print()">🖨️ Print / PDF</button>
+            <button class="btn btn-dark btn-sm" onclick="saveTrip()">💾 Save Trip</button>
+            <button class="btn btn-outline btn-sm" onclick="resetItin()">🔄 Plan Another</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ EXPLORE ════════════ -->
+<section data-page="explore" hidden>
+  <div class="page-header navbar--always"><h1>Destination Explorer</h1><div class="crumb">Home › <span>Explore</span></div></div>
+  <div class="explore-section">
+    <div class="wrap--sm">
+      <search>
+        <div class="search-wrap">
+          <input type="text" id="expInput" inputmode="search" placeholder="Explore Tokyo..." aria-label="Search destination" autocomplete="off" onkeydown="if(event.key==='Enter')exploreIt()">
+          <button class="btn btn-gold" onclick="exploreIt()">Discover →</button>
+        </div>
+      </search>
+      <div class="explore-results" id="expRes" aria-live="polite">
+        <div class="explore-cards" id="expCards"></div>
+        <div class="disclaimer" style="margin-block-start:var(--space-md)">⚠️ Information based on AI training data. Check official sources for latest travel advisories.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ COST ════════════ -->
+<section data-page="cost" hidden>
+  <div class="page-header navbar--always"><h1>Trip Cost Estimator</h1><div class="crumb">Home › <span>Cost Estimator</span></div></div>
+  <div class="cost-section">
+    <div class="wrap--sm">
+      <div class="disclaimer" style="margin-bottom:var(--space-md)">⚠️ All estimates based on historical AI training data. Verify with live booking platforms.</div>
+      <div id="costForm">
+        <div class="form-card">
+          <div class="form-grid">
+            <div class="fg"><label for="cdest">Destination</label><input type="text" id="cdest" placeholder="e.g. Japan, Maldives..." required></div>
+            <div class="fg"><label for="cdur">Duration</label>
+              <select id="cdur"><option value="1 day">1 Day</option><option value="2 days">2 Days</option><option value="3 days">3 Days</option><option value="4 days">4 Days</option><option value="5 days" selected>5 Days</option><option value="6 days">6 Days</option><option value="7 days">7 Days</option><option value="8 days">8 Days</option><option value="9 days">9 Days</option><option value="10 days">10 Days</option><option value="11 days">11 Days</option><option value="12 days">12 Days</option><option value="13 days">13 Days</option><option value="14 days">14 Days</option><option value="3 weeks">3 Weeks</option><option value="1 month">1 Month</option></select>
+            </div>
+            <div class="fg"><label for="ctrav">Number of Travelers</label><input type="number" id="ctrav" value="2" min="1" max="20"></div>
+            <div class="fg"><label for="caccom">Accommodation</label>
+              <select id="caccom"><option value="Hostel / Budget Guesthouse">Hostel / Budget</option><option value="3-Star Hotel" selected>3-Star Hotel</option><option value="5-Star Hotel">5-Star Hotel</option><option value="Private Villa / Resort">Private Villa / Resort</option></select>
+            </div>
+            <div class="fg full"><label for="cstyle">Travel Style</label>
+              <select id="cstyle"><option value="budget">Budget</option><option value="comfort" selected>Comfort</option><option value="luxury">Luxury</option></select>
+            </div>
+          </div>
+          <div style="margin-block-start:var(--space-md)"><button class="btn btn-gold" style="width:100%;justify-content:center" onclick="estCost()">Calculate My Budget 💰</button></div>
+        </div>
+      </div>
+      <div class="cost-results" id="costRes" aria-live="polite">
+        <div class="cost-grid" id="costGrid"></div>
+        <div class="cost-total" id="costTot"></div>
+        <div class="disclaimer">⚠️ All prices are estimates. Verify with Skyscanner, Booking.com or your travel agent.</div>
+        <div class="result-actions">
+          <button class="btn btn-dark btn-sm" onclick="window.print()">🖨️ Print / PDF</button>
+          <button class="btn btn-outline btn-sm" onclick="resetCost()">🔄 New Estimate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ PACKING ════════════ -->
+<section data-page="packing" hidden>
+  <div class="page-header navbar--always"><h1>Smart Packing List</h1><div class="crumb">Home › <span>Packing List</span></div></div>
+  <div class="packing-section">
+    <div class="wrap--sm">
+      <div id="packForm">
+        <div class="form-card">
+          <div class="form-grid">
+            <div class="fg"><label for="pdest">Destination</label><input type="text" id="pdest" placeholder="e.g. Goa, Iceland..." required></div>
+            <div class="fg"><label for="pdur">Duration</label>
+              <select id="pdur"><option value="1 day">1 Day</option><option value="2 days">2 Days</option><option value="3 days">3 Days</option><option value="4 days">4 Days</option><option value="5 days" selected>5 Days</option><option value="6 days">6 Days</option><option value="7 days">7 Days</option><option value="8 days">8 Days</option><option value="9 days">9 Days</option><option value="10 days">10 Days</option><option value="11 days">11 Days</option><option value="12 days">12 Days</option><option value="13 days">13 Days</option><option value="14 days">14 Days</option><option value="3 weeks">3 Weeks</option><option value="1 month">1 Month</option></select>
+            </div>
+            <div class="fg"><label for="pseas">Season</label>
+              <select id="pseas"><option value="Summer">Summer</option><option value="Winter">Winter</option><option value="Monsoon">Monsoon</option><option value="Spring">Spring</option><option value="Autumn">Autumn</option></select>
+            </div>
+            <div class="fg"><label for="ptype">Trip Type</label>
+              <select id="ptype"><option value="Beach">Beach</option><option value="Business">Business</option><option value="Adventure">Adventure</option><option value="City Break">City Break</option><option value="Cultural">Cultural</option></select>
+            </div>
+          </div>
+          <div style="margin-block-start:var(--space-md)"><button class="btn btn-gold" style="width:100%;justify-content:center" onclick="genPack()">Generate Packing List 🎒</button></div>
+        </div>
+      </div>
+      <div class="pack-results" id="packRes" aria-live="polite">
+        <div class="prog-wrap">
+          <div class="prog-label"><span id="pprog">0 of 0 items packed</span><strong id="ppct">0%</strong></div>
+          <div class="prog-track"><div class="prog-fill" id="pfill"></div></div>
+        </div>
+        <div class="pack-cats" id="packCats"></div>
+        <div class="result-actions pack-actions">
+          <button class="btn btn-dark btn-sm" onclick="copyPack()">📋 Copy List</button>
+          <button class="btn btn-dark btn-sm" onclick="window.print()">🖨️ Print</button>
+          <button class="btn btn-outline btn-sm" onclick="resetPack()">🔄 Reset All</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('packForm').style.display='block';document.getElementById('packRes').classList.remove('active')">New List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ CONTACT ════════════ -->
+<section data-page="contact" hidden>
+  <div class="page-header navbar--always"><h1>Book With Our Agents</h1><div class="crumb">Home › <span>Contact</span></div></div>
+  <div class="contact-section">
+    <div class="wrap">
+      <div class="contact-grid">
+        <div class="form-card">
+          <h2 style="font-size:var(--text-xl);margin-bottom:var(--space-md)">Send Us a Message</h2>
+          <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
+            <div class="fg"><label for="cname">Full Name</label><input type="text" id="cname" placeholder="Your name" required autocomplete="name"></div>
+            <div class="fg"><label for="cemail">Email Address</label><input type="email" id="cemail" placeholder="you@example.com" required autocomplete="email"></div>
+            <div class="fg"><label for="cphone">Phone Number</label><input type="tel" id="cphone" placeholder="+91 98765 43210" autocomplete="tel"></div>
+            <div class="fg"><label for="cdestc">Destination in Mind</label><input type="text" id="cdestc" placeholder="e.g. Europe tour, Thailand..."></div>
+            <div class="fg"><label for="cmsg">Message</label><textarea id="cmsg" placeholder="Tell us about your travel plans..." required></textarea></div>
+            <button class="btn btn-gold" onclick="submitContact()">Send Message →</button>
+          </div>
+        </div>
+        <div>
+          <div class="agency-card">
+            <h3>FaresMatch Travel Agency</h3>
+            <address style="font-style:normal">
+              <div class="arow"><span class="aicon">📍</span><span>123 Travel Street, Andheri West<br>Mumbai, Maharashtra 400053, India</span></div>
+              <div class="arow"><span class="aicon">📞</span><span>+91 98765 43210</span></div>
+              <div class="arow"><span class="aicon">📧</span><span>hello@faresmatch.com</span></div>
+              <div class="arow"><span class="aicon">🕐</span><span>Mon–Sat: 9AM – 7PM IST<br>Sunday: 10AM – 4PM IST</span></div>
+            </address>
+            <div class="maps-box" onclick="window.open('https://maps.google.com','_blank')">
+              <span style="font-size:2rem">📍</span><span>View on Google Maps</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="fbrand">
+        <div class="logo" style="cursor:default"><span class="l-fares">Fares</span><span class="l-dot">•</span><span class="l-match">Match</span></div>
+        <p>Find Your Fare. Match Your Journey.</p>
+      </div>
+      <div class="fcol"><h4>Features</h4><div class="flinks"><button onclick="showPage('itinerary')">AI Itinerary Generator</button><button onclick="showPage('explore')">Destination Explorer</button><button onclick="showPage('cost')">Cost Estimator</button><button onclick="showPage('packing')">Smart Packing List</button></div></div>
+      <div class="fcol"><h4>Company</h4><div class="flinks"><button onclick="showPage('home')">Home</button><button onclick="showPage('contact')">Contact Us</button><button onclick="openSaved()">Saved Trips</button></div></div>
+    </div>
+    <div class="foot-bottom">© 2025 FaresMatch. Built with ❤️ and Claude AI · All rights reserved.</div>
+  </div>
+</footer>
+
+<a href="https://wa.me/919876543210" target="_blank" rel="noopener" class="wa-btn" aria-label="Chat on WhatsApp">💬</a>
+
+<!-- LOADING DIALOG -->
+<dialog id="loadDlg" class="load-dlg" aria-live="assertive">
+  <div class="spinner"></div>
+  <div class="lmsg" id="lmsg">Mapping your adventure...</div>
+  <div class="lsub">This may take a moment</div>
+</dialog>
+
+<!-- SAVED TRIPS DIALOG -->
+<dialog id="savedDlg" aria-label="Saved trips">
+  <div class="mhead"><h2>Saved Trips</h2><button class="mclose" onclick="document.getElementById('savedDlg').close()" aria-label="Close">×</button></div>
+  <div class="mbody" id="savedBody"></div>
+</dialog>
+
+<!-- SUCCESS DIALOG -->
+<dialog id="succDlg" style="width:min(360px,90vw);background:var(--white);border-radius:var(--radius-md);padding:var(--space-lg);text-align:center;border:none;box-shadow:0 24px 80px rgba(0,0,0,.2)">
+  <div style="font-size:3rem;margin-bottom:var(--space-sm)">✅</div>
+  <h3 style="margin-bottom:8px">Message Sent!</h3>
+  <p style="color:var(--muted);font-size:var(--text-sm)">Thanks for reaching out. We'll be in touch soon.</p>
+</dialog>
+
+<script type="module">
+// ══════════════════════════════════════
+//  CONFIG — replace with your API key
+// ══════════════════════════════════════
+const API_KEY   = 'YOUR_API_KEY_HERE';
+const MODEL     = 'claude-sonnet-4-20250514';
+const MAX_TOK   = 1500;
+
+// ── CLAUDE CALL ──
+async function claude(prompt) {
+  const signal = AbortSignal.timeout(40000);
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST', signal,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model: MODEL, max_tokens: MAX_TOK, messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!res.ok) throw new Error(`API ${res.status}`, { cause: res.statusText });
+  const { content } = await res.json();
+  return content[0]?.text ?? '';
+}
+
+// ── TOAST ──
+function toast(msg, type = 'ok') {
+  const t = document.createElement('div');
+  t.className = `toast${type === 'err' ? ' terror' : ''}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(16px)'; t.addEventListener('transitionend', () => t.remove(), { once: true }); }, 3000);
+}
+
+// ── LOADING ──
+function showLoad(msg = 'Processing...') { document.getElementById('lmsg').textContent = msg; document.getElementById('loadDlg').showModal(); }
+function hideLoad() { document.getElementById('loadDlg').close(); }
+
+// ── PAGE NAV (View Transitions API) ──
+window.showPage = function(name) {
+  const go = () => {
+    document.querySelectorAll('[data-page]').forEach(s => { s.hidden = s.dataset.page !== name; });
+    document.querySelectorAll('.nav-btn[data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === name));
+    document.getElementById('nb').classList.toggle('navbar--always', name !== 'home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  if (!document.startViewTransition) { go(); return; }
+  document.startViewTransition(go);
+};
+
+window.closeMenu = () => { document.getElementById('hburger').removeAttribute('open'); };
+
+// ── STYLE TAGS ──
+window.toggleTag = el => { el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') !== 'true'); };
+const getStyles = () => [...document.querySelectorAll('#stags .style-tag[aria-pressed="true"]')].map(t => t.textContent.trim().replace(/^\S+\s/, '')).join(', ') || 'General sightseeing';
+
+// ── CUSTOM BUDGET ──
+window.toggleCB = v => document.getElementById('cbwrap').classList.toggle('open', v === 'custom');
+const getBudget = () => { const s = document.getElementById('ibudget').value; return s === 'custom' ? (document.getElementById('icb').value.trim() || 'custom budget') : s; };
+
+// ═══════════════════════════════════════
+//  ITINERARY ACCORDION PARSER
+// ═══════════════════════════════════════
+const TIME_ICONS = { Morning: '🌅', Afternoon: '☀️', Evening: '🌙' };
+
+function fmtInline(t) {
+  return t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+function fmtLine(line) {
+  if (!line.trim()) return '';
+  if (line.startsWith('- ')) return `<li>${fmtInline(line.slice(2))}</li>`;
+  return `<p>${fmtInline(line)}</p>`;
+}
+
+function renderAccordion(text) {
+  const lines = text.split('\n');
+  let html = '', inDay = false, dayBody = '', inTime = false, nonDay = '';
+
+  const flushTime = () => { if (inTime) { dayBody += '</div>'; inTime = false; } };
+  const flushDay  = () => {
+    if (inDay) { flushTime(); html += `<div class="day-body">${dayBody}</div></details>`; dayBody = ''; inDay = false; }
+  };
+
+  lines.forEach(line => {
+    if (/^## day\s/i.test(line)) {
+      flushDay();
+      const full = line.replace(/^## /i, '').trim();
+      const ci = full.indexOf(':');
+      const num   = ci > -1 ? full.slice(0, ci).trim() : full;
+      const title = ci > -1 ? full.slice(ci + 1).trim() : '';
+      html += `<details class="day-accordion"><summary class="day-summary"><span class="day-number">${num}</span><span class="day-title">${title}</span><span class="day-arrow">▾</span></summary>`;
+      inDay = true; dayBody = '';
+
+    } else if (line.startsWith('## ') && inDay) {
+      flushTime();
+      dayBody += `<h2 class="tips-heading">${line.slice(3)}</h2>`;
+
+    } else if (line.startsWith('## ') && !inDay) {
+      nonDay += `<h2 class="tips-heading">${line.slice(3)}</h2>`;
+
+    } else if (line.startsWith('### ') && inDay) {
+      flushTime();
+      const lbl = line.slice(4).trim();
+      const ico = TIME_ICONS[lbl] ?? '📍';
+      dayBody += `<div class="time-block"><h3 class="time-label">${ico} ${lbl}</h3>`;
+      inTime = true;
+
+    } else if (inDay) {
+      const f = fmtLine(line); if (f) dayBody += f;
+
+    } else {
+      const f = fmtLine(line); if (f) nonDay += f;
+    }
+  });
+
+  flushDay();
+  if (nonDay) html += `<div class="practical-tips">${nonDay}</div>`;
+  return html;
+}
+
+// ══════════════════════════════════════
+//  GENERATE ITINERARY
+// ══════════════════════════════════════
+window.genItinerary = async () => {
+  const dest = document.getElementById('id').value.trim();
+  if (!dest) { document.getElementById('id').focus(); toast('Please enter a destination', 'err'); return; }
+
+  const dur    = document.getElementById('idur').value;
+  const trav   = document.getElementById('itrav').value;
+  const budget = getBudget();
+  const styles = getStyles();
+  const special= document.getElementById('ispecial').value.trim();
+  const base   = `Destination: ${dest}, Duration: ${dur}, Travelers: ${trav}, Budget: ${budget}, Style: ${styles}${special ? ', Special: ' + special : ''}`;
+
+  const pA = `Expert travel planner. Vivid itinerary (Option A — classic popular route) for: ${base}
+Format EXACTLY like this — no deviations:
+[2-sentence intro paragraph about the destination]
+## Day 1: [Themed Title]
+### Morning
+[content with specific venue names]
+### Afternoon
+[content]
+### Evening
+[content]
+[repeat for each day]
+## Practical Tips
+[5 numbered practical tips]
+Tone: inspiring, personal, concise.`;
+
+  const pB = pA.replace('Option A — classic popular route', 'Option B — off-beat alternative with hidden gems, local neighborhoods, unique experiences different from Option A');
+
+  showLoad('Mapping your adventure...');
+  try {
+    const [tA, tB] = await Promise.all([claude(pA), claude(pB)]);
+    document.getElementById('rdest').textContent = dest;
+    document.getElementById('rmeta').textContent  = `${dur} · ${trav} · ${budget.split('(')[0].trim()}`;
+    document.getElementById('panelA').innerHTML = renderAccordion(tA);
+    document.getElementById('panelB').innerHTML = renderAccordion(tB);
+    window._trip = { dest, dur, trav, budget, tA, tB };
+    document.getElementById('itinForm').style.display = 'none';
+    document.getElementById('itinResult').classList.add('active');
+  } catch(e) {
+    toast(e.name === 'TimeoutError' ? 'Request timed out. Try again.' : 'Something went wrong. Try again.', 'err');
+  } finally { hideLoad(); }
+};
+
+window.resetItin = () => {
+  document.getElementById('itinResult').classList.remove('active');
+  document.getElementById('itinForm').style.display = 'block';
+  document.getElementById('id').value = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// ── SAVE TRIP ──
+window.saveTrip = () => {
+  const t = window._trip; if (!t) return;
+  const trips = JSON.parse(localStorage.getItem('fm:trips') ?? '[]');
+  trips.unshift({ id: crypto.randomUUID(), destination: t.dest, duration: t.dur, travelers: t.trav, budget: t.budget, optionA: t.tA, optionB: t.tB, savedAt: new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date()) });
+  localStorage.setItem('fm:trips', JSON.stringify(trips));
+  updateBadge(); toast('Trip saved! ✓');
+  document.dispatchEvent(new CustomEvent('tripsUpdated'));
+};
+
+function updateBadge() {
+  const trips = JSON.parse(localStorage.getItem('fm:trips') ?? '[]');
+  document.getElementById('bcount').textContent = trips.length;
+}
+
+window.openSaved = () => {
+  const trips = JSON.parse(localStorage.getItem('fm:trips') ?? '[]');
+  const body = document.getElementById('savedBody');
+  body.innerHTML = trips.length
+    ? trips.map(t => `<div class="saved-item"><div><strong>${t.destination}</strong><span>${t.duration} · ${t.travelers} · ${t.savedAt}</span></div><button class="sdel" onclick="delTrip('${t.id}')" aria-label="Delete">🗑️</button></div>`).join('')
+    : '<div class="empty-msg">No saved trips yet. Generate your first itinerary!</div>';
+  document.getElementById('savedDlg').showModal();
+};
+
+window.delTrip = id => {
+  let trips = JSON.parse(localStorage.getItem('fm:trips') ?? '[]');
+  trips = trips.filter(t => t.id !== id);
+  localStorage.setItem('fm:trips', JSON.stringify(trips));
+  updateBadge(); openSaved();
+};
+
+// ══════════════════════════════════════
+//  DESTINATION EXPLORER
+// ══════════════════════════════════════
+const PH = ['Explore Tokyo...','Explore Santorini...','Explore Bali...','Explore New York...','Explore Dubai...','Explore Kyoto...','Explore Maldives...'];
+let phi = 0;
+setInterval(() => {
+  const inp = document.getElementById('expInput');
+  if (document.activeElement !== inp) { phi = (phi + 1) % PH.length; inp.placeholder = PH[phi]; }
+}, 2200);
+
+window.exploreIt = async () => {
+  const dest = document.getElementById('expInput').value.trim();
+  if (!dest) { document.getElementById('expInput').focus(); toast('Enter a destination', 'err'); return; }
+
+  const prompt = `Comprehensive travel guide for ${dest} with exactly these sections in order:
+## Overview
+## Best Time to Visit
+## Top 10 Attractions
+## Local Cuisine
+## Cultural Tips
+## Visa Info
+## Weather Summary
+Be specific, vivid, and genuinely useful to a traveler.`;
+
+  showLoad(`Discovering ${dest}...`);
+  try {
+    const text = await claude(prompt);
+    renderExpCards(text);
+    document.getElementById('expRes').classList.add('active');
+  } catch { toast('Failed to load. Try again.', 'err'); }
+  finally { hideLoad(); }
+};
+
+const EXP_ICONS = { 'Overview':'📍','Best Time to Visit':'🗓️','Top 10 Attractions':'🏛️','Local Cuisine':'🍜','Cultural Tips':'🤝','Visa Info':'🛂','Weather Summary':'☀️' };
+
+function renderExpCards(text) {
+  const secs = text.split(/^## /m).filter(Boolean);
+  const cont = document.getElementById('expCards');
+  cont.innerHTML = secs.map((sec, i) => {
+    const lines = sec.trim().split('\n');
+    const title = lines[0].trim();
+    const body  = lines.slice(1).join('\n').trim();
+    const icon  = EXP_ICONS[title] ?? '📌';
+    const html  = body.replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`).replace(/\n\n/g, '</p><p>').replace(/^(?!<[ul])(.+)$/gm, m => m.trim() ? `<p>${m}</p>` : '').replace(/<p><\/p>/g, '');
+    return `<div class="exp-card" style="transition-delay:${i * .07}s"><div class="ei">${icon}</div><h3>${title}</h3><div class="ec">${html}</div></div>`;
+  }).join('');
+  setTimeout(() => {
+    cont.querySelectorAll('.exp-card').forEach(c => expObs.observe(c));
+  }, 50);
+}
+
+const expObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); expObs.unobserve(e.target); } });
+}, { threshold: .1 });
+
+// ══════════════════════════════════════
+//  COST ESTIMATOR
+// ══════════════════════════════════════
+window.estCost = async () => {
+  const dest   = document.getElementById('cdest').value.trim();
+  if (!dest) { document.getElementById('cdest').focus(); toast('Enter a destination', 'err'); return; }
+  const dur    = document.getElementById('cdur').value;
+  const trav   = document.getElementById('ctrav').value;
+  const accom  = document.getElementById('caccom').value;
+  const style  = document.getElementById('cstyle').value;
+
+  const prompt = `Return ONLY valid JSON, no markdown, no explanation, for a travel budget:
+Destination: ${dest}, Duration: ${dur}, ${trav} traveler(s), ${accom} accommodation, ${style} style.
+{"flights":{"range":"$X–$Y per person","total":"$Z"},"accommodation":{"range":"$X–$Y per night","total":"$Z"},"food":{"range":"$X–$Y per day","total":"$Z"},"activities":{"range":"$X–$Y total","total":"$Z"},"transport":{"range":"$X–$Y total","total":"$Z"},"misc":{"range":"$X–$Y total","total":"$Z"},"grandTotal":"$Z–$Z for all travelers"}`;
+
+  showLoad('Calculating your budget...');
+  try {
+    const raw  = await claude(prompt);
+    const data = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    renderCost(data);
+    document.getElementById('costForm').style.display = 'none';
+    document.getElementById('costRes').classList.add('active');
+    setTimeout(() => document.querySelectorAll('.bar-fill').forEach(b => { b.style.setProperty('--bar-w', b.dataset.pct + '%'); }), 120);
+  } catch { toast('Could not parse budget. Try again.', 'err'); }
+  finally { hideLoad(); }
+};
+
+function renderCost(d) {
+  const cats = [
+    { k:'flights',       i:'✈️', l:'Flights' },
+    { k:'accommodation', i:'🏨', l:'Accommodation' },
+    { k:'food',          i:'🍽️', l:'Food & Dining' },
+    { k:'activities',    i:'🎯', l:'Activities' },
+    { k:'transport',     i:'🚗', l:'Local Transport' },
+    { k:'misc',          i:'💼', l:'Miscellaneous' }
+  ];
+  const pcts = [30, 32, 16, 10, 7, 5];
+  document.getElementById('costGrid').innerHTML = cats.map((c, i) => {
+    const v = d[c.k] ?? {};
+    return `<div class="cost-card"><div class="cci">${c.i}</div><h4>${c.l}</h4><div class="cam">${v.total ?? 'N/A'}</div><div class="crng">${v.range ?? ''}</div><div class="bar-track"><div class="bar-fill" data-pct="${pcts[i]}" style="--bar-w:0%"></div></div></div>`;
+  }).join('');
+  document.getElementById('costTot').innerHTML = `<h3>Total Estimate</h3><div class="ctotal">${d.grandTotal ?? 'See breakdown'}</div>`;
+}
+
+window.resetCost = () => { document.getElementById('costRes').classList.remove('active'); document.getElementById('costForm').style.display = 'block'; };
+
+// ══════════════════════════════════════
+//  PACKING LIST
+// ══════════════════════════════════════
+window.genPack = async () => {
+  const dest = document.getElementById('pdest').value.trim();
+  if (!dest) { document.getElementById('pdest').focus(); toast('Enter a destination', 'err'); return; }
+  const dur  = document.getElementById('pdur').value;
+  const seas = document.getElementById('pseas').value;
+  const type = document.getElementById('ptype').value;
+
+  const prompt = `Return ONLY valid JSON for a packing list:
+Destination: ${dest}, Duration: ${dur}, Season: ${seas}, Trip: ${type}.
+{"clothing":["item1","item2"],"toiletries":["item1"],"documents":["item1"],"electronics":["item1"],"health":["item1"],"extras":["item1"]}
+Each array: 6–10 specific practical items. No explanations.`;
+
+  showLoad('Packing your bags...');
+  try {
+    const raw  = await claude(prompt);
+    const data = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    renderPack(data);
+    document.getElementById('packForm').style.display = 'none';
+    document.getElementById('packRes').classList.add('active');
+    updProg();
+  } catch { toast('Could not generate list. Try again.', 'err'); }
+  finally { hideLoad(); }
+};
+
+const PCAT = [
+  { k:'clothing',    i:'👔', l:'Clothing' },
+  { k:'toiletries',  i:'🧴', l:'Toiletries' },
+  { k:'documents',   i:'📄', l:'Documents' },
+  { k:'electronics', i:'💻', l:'Electronics' },
+  { k:'health',      i:'💊', l:'Health & Safety' },
+  { k:'extras',      i:'🎒', l:'Extras' }
+];
+
+function renderPack(data) {
+  const saved = JSON.parse(localStorage.getItem('fm:pack') ?? '{}');
+  document.getElementById('packCats').innerHTML = PCAT.map(c => {
+    const items = data[c.k] ?? [];
+    return `<div class="pack-cat"><div class="pcat-title">${c.i} ${c.l}</div>${
+      items.map((item, i) => {
+        const id = `pk-${c.k}-${i}`;
+        const ch = saved[id] ? 'checked' : '';
+        return `<div class="pack-row" onclick="document.getElementById('${id}').click()"><input type="checkbox" id="${id}" class="pitem" ${ch} onchange="savePack();updProg()"><label for="${id}" onclick="event.stopPropagation()">${item}</label></div>`;
+      }).join('')
+    }</div>`;
+  }).join('');
+}
+
+window.updProg = () => {
+  const all = [...document.querySelectorAll('.pitem')];
+  const done = all.filter(c => c.checked).length;
+  const pct  = all.length ? Math.round(done / all.length * 100) : 0;
+  document.getElementById('pprog').textContent = `${done} of ${all.length} items packed`;
+  document.getElementById('ppct').textContent  = `${pct}%`;
+  document.getElementById('pfill').style.setProperty('--pack-w', pct + '%');
+};
+
+function savePack() {
+  const st = {};
+  document.querySelectorAll('.pitem').forEach(cb => { st[cb.id] = cb.checked; });
+  localStorage.setItem('fm:pack', JSON.stringify(st));
+}
+
+window.copyPack = () => {
+  const items = [...document.querySelectorAll('.pitem')];
+  const txt = items.map(cb => `[${cb.checked ? 'x' : ' '}] ${document.querySelector(`label[for="${cb.id}"]`)?.textContent ?? ''}`).join('\n');
+  navigator.clipboard.writeText(txt).then(() => toast('List copied! 📋')).catch(() => toast('Copy failed', 'err'));
+};
+
+window.resetPack = () => {
+  document.querySelectorAll('.pitem').forEach(cb => { cb.checked = false; });
+  localStorage.removeItem('fm:pack');
+  updProg(); toast('Packing list reset');
+};
+
+// ══════════════════════════════════════
+//  CONTACT
+// ══════════════════════════════════════
+window.submitContact = () => {
+  const name = document.getElementById('cname').value.trim();
+  const email= document.getElementById('cemail').value.trim();
+  const msg  = document.getElementById('cmsg').value.trim();
+  if (!name || !email || !msg) { toast('Please fill required fields', 'err'); return; }
+  const dlg = document.getElementById('succDlg');
+  dlg.showModal();
+  setTimeout(() => dlg.close(), 3000);
+  ['cname','cemail','cphone','cdestc','cmsg'].forEach(id => { document.getElementById(id).value = ''; });
+};
+
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  updateBadge();
+
+  // Close dialogs on backdrop click
+  ['savedDlg','succDlg'].forEach(id => {
+    const d = document.getElementById(id);
+    d?.addEventListener('click', e => { if (e.target === d) d.close(); });
+  });
+
+  // View transition CSS
+  const style = document.createElement('style');
+  style.textContent = `
+    ::view-transition-old(root) { animation: 180ms ease-out both fade-out; }
+    ::view-transition-new(root) { animation: 280ms ease-in  both fade-in; animation-delay: 80ms; }
+    @keyframes fade-out { to   { opacity: 0; } }
+    @keyframes fade-in  { from { opacity: 0; } }
+  `;
+  document.head.appendChild(style);
+});
+</script>
+</body>
+</html>
