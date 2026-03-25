@@ -1,0 +1,98 @@
+export const MOCK_FLIGHTS = [
+  {
+    id: '1',
+    airline: 'Air India',
+    from: 'DEL',
+    to: 'BOM',
+    departure: '08:30',
+    arrival: '10:45',
+    duration: '2h 15m',
+    stops: 0,
+    price: 4500,
+    oldPrice: 6200,
+  },
+  {
+    id: '2',
+    airline: 'IndiGo',
+    from: 'DEL',
+    to: 'BOM',
+    departure: '11:00',
+    arrival: '13:20',
+    duration: '2h 20m',
+    stops: 0,
+    price: 3800,
+  },
+  {
+    id: '3',
+    airline: 'SpiceJet',
+    from: 'DEL',
+    to: 'BOM',
+    departure: '14:30',
+    arrival: '16:50',
+    duration: '2h 20m',
+    stops: 0,
+    price: 3500,
+  },
+  {
+    id: '4',
+    airline: 'Vistara',
+    from: 'DEL',
+    to: 'BOM',
+    departure: '18:00',
+    arrival: '20:15',
+    duration: '2h 15m',
+    stops: 0,
+    price: 5200,
+  },
+];
+
+export const MOCK_HOTELS = [
+  {
+    id: '1',
+    name: 'The Grand Plaza Hotel',
+    location: 'Downtown, Mumbai',
+    stars: 5,
+    rating: 4.8,
+    reviews: 1234,
+    price: 8500,
+    distance: '2.5 km from center',
+  },
+  {
+    id: '2',
+    name: 'Comfort Inn & Suites',
+    location: 'Bandra West, Mumbai',
+    stars: 4,
+    rating: 4.5,
+    reviews: 856,
+    price: 5200,
+    distance: '3.8 km from center',
+  },
+  {
+    id: '3',
+    name: 'Budget Stay Hotel',
+    location: 'Andheri, Mumbai',
+    stars: 3,
+    rating: 4.2,
+    reviews: 432,
+    price: 3200,
+    distance: '8.2 km from center',
+  },
+];
+
+export const MOCK_TRENDING_FARES = [
+  { from: 'NYC', to: 'LON', dates: 'Oct 12 - Oct 19', price: 340, oldPrice: 550, save: 38 },
+  { from: 'LAX', to: 'TYO', dates: 'Nov 5 - Nov 12', price: 520, oldPrice: 780, save: 33 },
+  { from: 'SFO', to: 'PAR', dates: 'Dec 1 - Dec 8', price: 410, oldPrice: 620, save: 34 },
+  { from: 'MIA', to: 'BCN', dates: 'Jan 15 - Jan 22', price: 380, oldPrice: 590, save: 36 },
+];
+
+export const AIRPORTS = [
+  { code: 'DEL', name: 'Indira Gandhi International', city: 'Delhi' },
+  { code: 'BOM', name: 'Chhatrapati Shivaji Maharaj International', city: 'Mumbai' },
+  { code: 'BLR', name: 'Kempegowda International', city: 'Bangalore' },
+  { code: 'MAA', name: 'Chennai International', city: 'Chennai' },
+  { code: 'HYD', name: 'Rajiv Gandhi International', city: 'Hyderabad' },
+  { code: 'CCU', name: 'Netaji Subhas Chandra Bose International', city: 'Kolkata' },
+  { code: 'GOI', name: 'Goa International', city: 'Goa' },
+  { code: 'COK', name: 'Cochin International', city: 'Kochi' },
+];
